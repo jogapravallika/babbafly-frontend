@@ -88,6 +88,7 @@ function Listings() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchListings();
   }, []);
@@ -106,7 +107,6 @@ function Listings() {
           Book Cars, Bikes, Flights & Trains across India
         </p>
 
-        {/* Search Bar */}
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '700px', margin: '0 auto' }}>
           <input
             placeholder="🔍 Search by city..."
