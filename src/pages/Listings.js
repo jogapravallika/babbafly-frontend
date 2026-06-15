@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -20,7 +20,6 @@ const categoryConfig = {
   'trains': { color: '#96CEB4', bg: '#F0FFF4', icon: '🚂', label: 'Train' },
 };
 
-// Geocoding cache
 const coordsCache = {};
 
 async function getCoords(city) {
@@ -43,18 +42,21 @@ function Listings() {
   const [location, setLocation] = useState('');
   const [sort, setSort] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showListings, setShowListings] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [bookingStatus, setBookingStatus] = useState('');
   const [paymentInfo, setPaymentInfo] = useState({ cardName: '', cardNumber: '', expiry: '', cvv: '' });
   const [fullMapItem, setFullMapItem] = useState(null);
   const [mapCoords, setMapCoords] = useState(null);
   const [mapLoading, setMapLoading] = useState(false);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchListings(); }, []);
+  const [showMyBookings, setShowMyBookings] = useState(false);
+  const [myBookings, setMyBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
 
   const fetchListings = async () => {
     setLoading(true);
+    setShowListings(true);
+    setShowMyBookings(false);
     try {
       let url = `${API}/api/listings?`;
       if (location) url += `location=${location}&`;
@@ -65,6 +67,22 @@ function Listings() {
       console.error(err);
     }
     setLoading(false);
+  };
+
+  const fetchMyBookings = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) { alert('Please login first!'); return; }
+    setBookingsLoading(true);
+    setShowMyBookings(true);
+    setShowListings(false);
+    try {
+      const res = await axios.get(`${API}/api/orders/${user._id}`);
+      setMyBookings(res.data.orders || []);
+    } catch (err) {
+      console.error(err);
+      setMyBookings([]);
+    }
+    setBookingsLoading(false);
   };
 
   const handleViewMap = async (item) => {
@@ -101,79 +119,223 @@ function Listings() {
   return (
     <div style={{ minHeight: '100vh', background: '#f0f2f5' }}>
 
+      {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', padding: '50px 20px', textAlign: 'center' }}>
-        <h1 style={{ color: 'white', fontSize: '42px', fontWeight: '800', marginBottom: '10px' }}>🚀 BabbaFly</h1>
-        <p style={{ color: '#a0aec0', fontSize: '18px', marginBottom: '30px' }}>Book Cars, Bikes, Flights & Trains across India</p>
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '700px', margin: '0 auto' }}>
-          <input placeholder="🔍 Search by city..." value={location} onChange={(e) => setLocation(e.target.value)}
+
+        {/* BabbaFly Big Colorful Title */}
+        <div style={{ marginBottom: '8px' }}>
+          <span style={{ fontSize: '50px', filter: 'drop-shadow(0 0 20px rgba(233,69,96,0.6))' }}>🚀</span>
+        </div>
+        <h1 style={{
+          fontSize: '72px',
+          fontWeight: '900',
+          margin: '0 0 8px 0',
+          background: 'linear-gradient(135deg, #ff6b6b, #e94560, #f5576c, #45b7d1, #96ceb4)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          letterSpacing: '-2px',
+          lineHeight: 1,
+          filter: 'drop-shadow(0 0 30px rgba(233,69,96,0.3))'
+        }}>
+          BabbaFly
+        </h1>
+        <p style={{ color: '#a0aec0', fontSize: '16px', marginBottom: '30px', letterSpacing: '2px', textTransform: 'uppercase' }}>
+          Book Cars, Bikes, Flights & Trains across India
+        </p>
+
+        {/* Search + Sort */}
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '700px', margin: '0 auto 20px' }}>
+          <input
+            placeholder="🔍 Search by city..."
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && fetchListings()}
-            style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', width: '280px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }} />
-          <select value={sort} onChange={(e) => setSort(e.target.value)}
-            style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
+            style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', width: '280px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
+          />
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
+          >
             <option value="">Sort By</option>
             <option value="latest">⏰ Latest</option>
             <option value="price_low">💰 Low to High</option>
             <option value="price_high">💎 High to Low</option>
             <option value="popular">⭐ Popular</option>
           </select>
-          <button onClick={fetchListings}
-            style={{ padding: '14px 30px', background: '#e94560', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', boxShadow: '0 4px 15px rgba(233,69,96,0.4)' }}>
+          <button
+            onClick={fetchListings}
+            style={{ padding: '14px 30px', background: '#e94560', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', boxShadow: '0 4px 15px rgba(233,69,96,0.4)' }}
+          >
             Search
+          </button>
+        </div>
+
+        {/* View Listings + My Bookings Buttons */}
+        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={fetchListings}
+            style={{
+              padding: '14px 35px',
+              background: showListings ? 'linear-gradient(135deg, #45b7d1, #96ceb4)' : 'rgba(255,255,255,0.15)',
+              color: 'white',
+              border: '2px solid rgba(255,255,255,0.3)',
+              borderRadius: '50px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '700',
+              backdropFilter: 'blur(10px)',
+              boxShadow: showListings ? '0 6px 20px rgba(69,183,209,0.5)' : 'none',
+              transition: 'all 0.3s'
+            }}
+          >
+            🗂️ View Listings
+          </button>
+          <button
+            onClick={fetchMyBookings}
+            style={{
+              padding: '14px 35px',
+              background: showMyBookings ? 'linear-gradient(135deg, #e94560, #f5576c)' : 'rgba(255,255,255,0.15)',
+              color: 'white',
+              border: '2px solid rgba(255,255,255,0.3)',
+              borderRadius: '50px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '700',
+              backdropFilter: 'blur(10px)',
+              boxShadow: showMyBookings ? '0 6px 20px rgba(233,69,96,0.5)' : 'none',
+              transition: 'all 0.3s'
+            }}
+          >
+            📋 My Bookings
           </button>
         </div>
       </div>
 
       <div style={{ padding: '30px 20px', maxWidth: '1300px', margin: '0 auto' }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px' }}><p style={{ fontSize: '20px', color: '#666' }}>⏳ Loading listings...</p></div>
-        ) : listings.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px' }}><p style={{ fontSize: '20px', color: '#666' }}>😕 No listings found</p></div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px' }}>
-            {listings.map((item) => {
-              const cfg = config(item.category);
-              return (
-                <div key={item._id}
-                  style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', transition: 'all 0.3s', border: '1px solid #eee' }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                  <div style={{ background: `linear-gradient(135deg, ${cfg.color}22, ${cfg.color}44)`, padding: '25px', display: 'flex', alignItems: 'center', gap: '15px', borderBottom: `3px solid ${cfg.color}` }}>
-                    <span style={{ fontSize: '50px' }}>{cfg.icon}</span>
-                    <div>
-                      <h3 style={{ color: '#1a1a2e', fontSize: '18px', fontWeight: '700', margin: 0 }}>{item.title}</h3>
-                      <span style={{ background: cfg.color, color: 'white', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>{cfg.label}</span>
+
+        {/* Default state - nothing selected yet */}
+        {!showListings && !showMyBookings && (
+          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+            <p style={{ fontSize: '60px', marginBottom: '20px' }}>✈️</p>
+            <h2 style={{ color: '#1a1a2e', fontSize: '28px', fontWeight: '700', marginBottom: '10px' }}>Welcome to BabbaFly!</h2>
+            <p style={{ color: '#718096', fontSize: '16px' }}>Click "View Listings" to explore travel options or "My Bookings" to see your orders.</p>
+          </div>
+        )}
+
+        {/* Listings Grid */}
+        {showListings && (
+          loading ? (
+            <div style={{ textAlign: 'center', padding: '60px' }}>
+              <p style={{ fontSize: '20px', color: '#666' }}>⏳ Loading listings...</p>
+            </div>
+          ) : listings.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px' }}>
+              <p style={{ fontSize: '20px', color: '#666' }}>😕 No listings found</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px' }}>
+              {listings.map((item) => {
+                const cfg = config(item.category);
+                return (
+                  <div key={item._id}
+                    style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', transition: 'all 0.3s', border: '1px solid #eee' }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    <div style={{ background: `linear-gradient(135deg, ${cfg.color}22, ${cfg.color}44)`, padding: '25px', display: 'flex', alignItems: 'center', gap: '15px', borderBottom: `3px solid ${cfg.color}` }}>
+                      <span style={{ fontSize: '50px' }}>{cfg.icon}</span>
+                      <div>
+                        <h3 style={{ color: '#1a1a2e', fontSize: '18px', fontWeight: '700', margin: 0 }}>{item.title}</h3>
+                        <span style={{ background: cfg.color, color: 'white', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>{cfg.label}</span>
+                      </div>
+                    </div>
+                    <div style={{ padding: '20px' }}>
+                      <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px', lineHeight: '1.5' }}>{item.description}</p>
+                      <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+                        <span style={{ color: '#4a5568', fontSize: '14px' }}>📍 {item.location || 'N/A'}</span>
+                        <span style={{ color: '#4a5568', fontSize: '14px' }}>⭐ {item.rating || 0}/5</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                        <div>
+                          <span style={{ color: '#999', fontSize: '12px' }}>Starting from</span>
+                          <p style={{ color: cfg.color, fontWeight: '800', fontSize: '24px', margin: 0 }}>₹{item.price}</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+                          <button onClick={() => { setSelectedItem(item); setBookingStatus(''); }}
+                            style={{ padding: '10px 18px', background: cfg.color, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}>
+                            🎟️ Book Now
+                          </button>
+                          {item.location && (
+                            <button onClick={() => handleViewMap(item)}
+                              style={{ padding: '8px 18px', background: 'white', color: cfg.color, border: `2px solid ${cfg.color}`, borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
+                              🗺️ View Map
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ padding: '20px' }}>
-                    <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px', lineHeight: '1.5' }}>{item.description}</p>
-                    <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-                      <span style={{ color: '#4a5568', fontSize: '14px' }}>📍 {item.location || 'N/A'}</span>
-                      <span style={{ color: '#4a5568', fontSize: '14px' }}>⭐ {item.rating || 0}/5</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-                      <div>
-                        <span style={{ color: '#999', fontSize: '12px' }}>Starting from</span>
-                        <p style={{ color: cfg.color, fontWeight: '800', fontSize: '24px', margin: 0 }}>₹{item.price}</p>
+                );
+              })}
+            </div>
+          )
+        )}
+
+        {/* My Bookings Section */}
+        {showMyBookings && (
+          bookingsLoading ? (
+            <div style={{ textAlign: 'center', padding: '60px' }}>
+              <p style={{ fontSize: '20px', color: '#666' }}>⏳ Loading your bookings...</p>
+            </div>
+          ) : myBookings.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+              <p style={{ fontSize: '50px' }}>📋</p>
+              <h3 style={{ color: '#1a1a2e', fontSize: '22px' }}>No Bookings Yet!</h3>
+              <p style={{ color: '#718096' }}>You haven't booked anything yet. Click "View Listings" to explore!</p>
+            </div>
+          ) : (
+            <div>
+              <h2 style={{ color: '#1a1a2e', fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>📋 My Bookings ({myBookings.length})</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                {myBookings.map((order, i) => {
+                  const cfg = order.listingId ? config(order.listingId.category) : { color: '#888', bg: '#f9f9f9', icon: '📦', label: 'N/A' };
+                  return (
+                    <div key={order._id || i} style={{ background: 'white', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', border: `2px solid ${cfg.color}33` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
+                        <span style={{ fontSize: '35px' }}>{cfg.icon}</span>
+                        <div>
+                          <h3 style={{ margin: 0, color: '#1a1a2e', fontSize: '16px', fontWeight: '700' }}>
+                            {order.listingId ? order.listingId.title : 'Booking'}
+                          </h3>
+                          <span style={{ background: cfg.color, color: 'white', padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: '600' }}>{cfg.label}</span>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
-                        <button onClick={() => { setSelectedItem(item); setBookingStatus(''); }}
-                          style={{ padding: '10px 18px', background: cfg.color, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}>
-                          🎟️ Book Now
-                        </button>
-                        {item.location && (
-                          <button onClick={() => handleViewMap(item)}
-                            style={{ padding: '8px 18px', background: 'white', color: cfg.color, border: `2px solid ${cfg.color}`, borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
-                            🗺️ View Map
-                          </button>
+                      <div style={{ borderTop: '1px solid #eee', paddingTop: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ color: '#718096', fontSize: '13px' }}>Amount Paid</span>
+                          <span style={{ color: cfg.color, fontWeight: '800', fontSize: '18px' }}>₹{order.amount}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ color: '#718096', fontSize: '13px' }}>Status</span>
+                          <span style={{ background: order.status === 'confirmed' ? '#f0fff4' : '#fff5f5', color: order.status === 'confirmed' ? '#276749' : '#c53030', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
+                            {order.status === 'confirmed' ? '✅ Confirmed' : order.status || 'Pending'}
+                          </span>
+                        </div>
+                        {order.listingId && order.listingId.location && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#718096', fontSize: '13px' }}>Location</span>
+                            <span style={{ color: '#4a5568', fontSize: '13px', fontWeight: '600' }}>📍 {order.listingId.location}</span>
+                          </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </div>
+          )
         )}
       </div>
 
