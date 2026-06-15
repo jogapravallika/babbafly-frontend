@@ -18,19 +18,13 @@ function MyBookings() {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
-    console.log('User from localStorage:', user);
     if (!user) { navigate('/login'); return; }
-    axios.get(`${API}/api/orders/${user._id}`)
+    axios.get(`${API}/api/orders/user/${user._id}`)
       .then(res => {
-        console.log('API Response:', res.data);
-        console.log('Orders:', res.data.orders);
         setBookings(res.data.orders || []);
         setLoading(false);
       })
-      .catch((err) => {
-        console.log('API Error:', err);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, [navigate]);
 
   const config = (cat) => categoryConfig[cat] || { color: '#888', icon: '📦', label: cat };
@@ -62,7 +56,7 @@ function MyBookings() {
             <p style={{ fontSize: '60px' }}>📋</p>
             <h3 style={{ color: 'white', fontSize: '22px' }}>No Bookings Yet!</h3>
             <p style={{ color: '#a0aec0', marginBottom: '25px' }}>You haven't booked anything yet.</p>
-            <button onClick={() => navigate('/listings')}
+            <button onClick={() => navigate('/all-listings')}
               style={{ padding: '14px 35px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '50px', cursor: 'pointer', fontSize: '16px', fontWeight: '700' }}>
               🗂️ Browse Listings
             </button>
