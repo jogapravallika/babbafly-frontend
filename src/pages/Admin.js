@@ -6,14 +6,6 @@ const API = 'https://babbafly-backend-ae30.onrender.com';
 
 function Admin() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
-
-  // Login కాకపోతే redirect చేయండి
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
-
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -23,6 +15,14 @@ function Admin() {
     rating: ''
   });
   const [message, setMessage] = useState('');
+
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  // Login కాకపోతే redirect చేయండి
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
