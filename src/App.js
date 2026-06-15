@@ -4,14 +4,15 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Listings from './pages/Listings';
 import Home from './pages/Home';
+import Admin from './pages/Admin';
 import './App.css';
 
 function Navbar() {
   const location = useLocation();
   const isHome = location.pathname === '/';
-
-  // Home page lo navbar show cheyyadhu
   if (isHome) return null;
+
+  const user = JSON.parse(localStorage.getItem('user'));
 
   return (
     <nav style={{
@@ -28,6 +29,21 @@ function Navbar() {
       <Link to="/listings" style={{ color: '#333', textDecoration: 'none', fontWeight: '600' }}>Home</Link>
       <Link to="/register" style={{ color: '#333', textDecoration: 'none', fontWeight: '600' }}>Register</Link>
       <Link to="/login" style={{ color: '#333', textDecoration: 'none', fontWeight: '600' }}>Login</Link>
+
+      {/* Login అయిన తర్వాత మాత్రమే Admin button కనిపిస్తుంది */}
+      {user && (
+        <Link to="/admin" style={{
+          marginLeft: 'auto',
+          background: '#e94560',
+          color: 'white',
+          textDecoration: 'none',
+          fontWeight: '700',
+          padding: '8px 18px',
+          borderRadius: '10px'
+        }}>
+          ➕ Add Listing
+        </Link>
+      )}
     </nav>
   );
 }
@@ -41,6 +57,7 @@ function App() {
         <Route path="/listings" element={<Listings />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   );
