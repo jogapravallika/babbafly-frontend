@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate 
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Listings from './pages/Listings';
+import AllListings from './pages/AllListings';
 import Home from './pages/Home';
 import Admin from './pages/Admin';
 import MyBookings from './pages/MyBookings';
@@ -106,6 +107,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/listings" element={<Listings />} />
+        <Route path="/all-listings" element={<AllListings />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<Admin />} />
