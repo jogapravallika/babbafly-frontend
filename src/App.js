@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Listings from './pages/Listings';
@@ -9,13 +9,15 @@ import './App.css';
 
 function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showPasswordBox, setShowPasswordBox] = useState(false);
+  const [adminPass, setAdminPass] = useState('');
+  const [error, setError] = useState('');
+
   const isHome = location.pathname === '/';
   if (isHome) return null;
 
   const user = JSON.parse(localStorage.getItem('user'));
-  const [showPasswordBox, setShowPasswordBox] = useState(false);
-  const [adminPass, setAdminPass] = useState('');
-  const [error, setError] = useState('');
 
   const handleAdminClick = () => {
     setShowPasswordBox(true);
@@ -24,7 +26,8 @@ function Navbar() {
 
   const handleAdminSubmit = () => {
     if (adminPass === 'babbafly@123') {
-      window.location.href = '/admin';
+      setShowPasswordBox(false);
+      navigate('/admin');
     } else {
       setError('❌ Wrong password!');
     }
@@ -64,7 +67,6 @@ function Navbar() {
         )}
       </nav>
 
-      {/* Admin Password Modal */}
       {showPasswordBox && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div style={{ background: 'white', borderRadius: '16px', padding: '30px', maxWidth: '350px', width: '90%', textAlign: 'center' }}>
