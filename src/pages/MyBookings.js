@@ -18,10 +18,19 @@ function MyBookings() {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
+    console.log('User from localStorage:', user);
     if (!user) { navigate('/login'); return; }
     axios.get(`${API}/api/orders/${user._id}`)
-      .then(res => { setBookings(res.data.orders || []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(res => {
+        console.log('API Response:', res.data);
+        console.log('Orders:', res.data.orders);
+        setBookings(res.data.orders || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log('API Error:', err);
+        setLoading(false);
+      });
   }, [navigate]);
 
   const config = (cat) => categoryConfig[cat] || { color: '#888', icon: '📦', label: cat };
