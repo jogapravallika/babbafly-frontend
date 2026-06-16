@@ -14,11 +14,12 @@ L.Icon.Default.mergeOptions({
 
 const API = 'https://babbafly-backend-ae30.onrender.com';
 
+// THEME: dark blue + pink palette, used consistently across all categories and accents
 const categoryConfig = {
-  'cars': { color: '#FF6B6B', bg: '#FFF5F5', icon: '🚗', label: 'Car' },
-  'bikes': { color: '#4ECDC4', bg: '#F0FFFE', icon: '🏍️', label: 'Bike' },
-  'flights': { color: '#45B7D1', bg: '#F0F9FF', icon: '✈️', label: 'Flight' },
-  'trains': { color: '#96CEB4', bg: '#F0FFF4', icon: '🚂', label: 'Train' },
+  'cars': { color: '#ff1493', bg: 'rgba(255,20,147,0.08)', icon: '🚗', label: 'Car' },
+  'bikes': { color: '#4fc3f7', bg: 'rgba(79,195,247,0.08)', icon: '🏍️', label: 'Bike' },
+  'flights': { color: '#1e88e5', bg: 'rgba(30,136,229,0.08)', icon: '✈️', label: 'Flight' },
+  'trains': { color: '#ff69b4', bg: 'rgba(255,105,180,0.08)', icon: '🚂', label: 'Train' },
 };
 
 const coordsCache = {};
@@ -115,10 +116,10 @@ function AllListings() {
     }, 1000);
   };
 
-  const config = (cat) => categoryConfig[cat] || { color: '#888', bg: '#f9f9f9', icon: '📦', label: cat };
+  const config = (cat) => categoryConfig[cat] || { color: '#4fc3f7', bg: 'rgba(79,195,247,0.08)', icon: '📦', label: cat };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0e27 0%, #0d1b4b 40%, #1a0533 70%, #0a0e27 100%)' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0e27 0%, #0d1b4b 45%, #061b3a 75%, #0a0e27 100%)' }}>
 
       {/* Header */}
       <div style={{ padding: '30px 20px 20px', textAlign: 'center' }}>
@@ -132,20 +133,20 @@ function AllListings() {
           />
           <select value={sort} onChange={(e) => setSort(e.target.value)}
             style={{ padding: '14px 20px', borderRadius: '12px', border: '2px solid rgba(255,105,180,0.25)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '15px', outline: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-            <option value="" style={{ color: '#1a1a2e' }}>Sort By</option>
-            <option value="latest" style={{ color: '#1a1a2e' }}>⏰ Latest</option>
-            <option value="price_low" style={{ color: '#1a1a2e' }}>💰 Low to High</option>
-            <option value="price_high" style={{ color: '#1a1a2e' }}>💎 High to Low</option>
-            <option value="popular" style={{ color: '#1a1a2e' }}>⭐ Popular</option>
+            <option value="" style={{ color: '#0a0e27' }}>Sort By</option>
+            <option value="latest" style={{ color: '#0a0e27' }}>⏰ Latest</option>
+            <option value="price_low" style={{ color: '#0a0e27' }}>💰 Low to High</option>
+            <option value="price_high" style={{ color: '#0a0e27' }}>💎 High to Low</option>
+            <option value="popular" style={{ color: '#0a0e27' }}>⭐ Popular</option>
           </select>
           <button onClick={fetchListings}
-            style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', boxShadow: '0 4px 20px rgba(233,69,96,0.4)' }}>
+            style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #ff1493, #ff69b4)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', boxShadow: '0 4px 20px rgba(255,20,147,0.4)' }}>
             Search
           </button>
         </div>
         <button onClick={() => navigate('/my-bookings')}
           style={{ padding: '11px 30px', background: 'rgba(255,255,255,0.06)', color: 'white', border: '2px solid rgba(255,105,180,0.35)', borderRadius: '50px', cursor: 'pointer', fontSize: '15px', fontWeight: '700', backdropFilter: 'blur(10px)', transition: 'all 0.2s' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(233,69,96,0.25)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(233,69,96,0.4)'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,20,147,0.25)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(255,20,147,0.4)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.boxShadow = 'none'; }}>
           📋 My Bookings
         </button>
@@ -164,7 +165,7 @@ function AllListings() {
               return (
                 <div key={item._id}
                   style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', transition: 'all 0.3s', backdropFilter: 'blur(10px)' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(233,69,96,0.3)'; e.currentTarget.style.border = '1px solid rgba(233,69,96,0.4)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(255,20,147,0.3)'; e.currentTarget.style.border = '1px solid rgba(255,20,147,0.4)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.4)'; e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; }}>
                   <div style={{ background: `linear-gradient(135deg, ${cfg.color}33, ${cfg.color}11)`, padding: '25px', display: 'flex', alignItems: 'center', gap: '15px', borderBottom: `3px solid ${cfg.color}` }}>
                     <span style={{ fontSize: '50px' }}>{cfg.icon}</span>
@@ -186,7 +187,7 @@ function AllListings() {
                       </div>
                       <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
                         <button onClick={() => { setSelectedItem(item); setBookingStatus(''); setPaymentTab('upi'); setShowQR(false); setUpiId(''); }}
-                          style={{ padding: '10px 18px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', boxShadow: '0 4px 14px rgba(233,69,96,0.35)' }}>
+                          style={{ padding: '10px 18px', background: 'linear-gradient(135deg, #ff1493, #ff69b4)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', boxShadow: '0 4px 14px rgba(255,20,147,0.35)' }}>
                           🎟️ Book Now
                         </button>
                         {item.location && (
@@ -208,13 +209,13 @@ function AllListings() {
       {/* Map Modal */}
       {fullMapItem && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(5,7,20,0.92)', zIndex: 2000, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', background: 'linear-gradient(135deg, #0a0e27, #1a0533)', borderBottom: '1px solid rgba(255,105,180,0.2)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', background: 'linear-gradient(135deg, #0a0e27, #0d1b4b)', borderBottom: '1px solid rgba(255,105,180,0.2)' }}>
             <div>
               <h3 style={{ color: 'white', margin: 0 }}>{config(fullMapItem.category).icon} {fullMapItem.title}</h3>
               <p style={{ color: '#a0aec0', margin: 0, fontSize: '14px' }}>📍 {fullMapItem.location}</p>
             </div>
             <button onClick={() => { setFullMapItem(null); setMapCoords(null); }}
-              style={{ background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 4px 14px rgba(233,69,96,0.4)' }}>
+              style={{ background: 'linear-gradient(135deg, #ff1493, #ff69b4)', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 4px 14px rgba(255,20,147,0.4)' }}>
               ✕ Close
             </button>
           </div>
@@ -242,7 +243,7 @@ function AllListings() {
       {/* Payment Modal - Dark UPI Style */}
       {selectedItem && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(5,7,20,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'linear-gradient(135deg, #0a0e27, #0d1b4b, #1a0533)', borderRadius: '24px', padding: '30px', maxWidth: '460px', width: '92%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 25px 60px rgba(0,0,0,0.6)', border: '1px solid rgba(255,105,180,0.15)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #0a0e27, #0d1b4b, #061b3a)', borderRadius: '24px', padding: '30px', maxWidth: '460px', width: '92%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 25px 60px rgba(0,0,0,0.6)', border: '1px solid rgba(255,105,180,0.15)' }}>
 
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
@@ -252,25 +253,25 @@ function AllListings() {
             </div>
 
             {/* Amount Box */}
-            <div style={{ background: 'rgba(233,69,96,0.15)', border: '1px solid rgba(233,69,96,0.4)', borderRadius: '14px', padding: '15px', textAlign: 'center', marginBottom: '22px', boxShadow: '0 0 20px rgba(233,69,96,0.15)' }}>
+            <div style={{ background: 'rgba(255,20,147,0.15)', border: '1px solid rgba(255,20,147,0.4)', borderRadius: '14px', padding: '15px', textAlign: 'center', marginBottom: '22px', boxShadow: '0 0 20px rgba(255,20,147,0.15)' }}>
               <p style={{ color: '#a0aec0', margin: '0 0 4px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Amount</p>
-              <p style={{ color: '#ff6b9d', fontSize: '36px', fontWeight: '900', margin: 0, textShadow: '0 0 20px rgba(233,69,96,0.5)' }}>₹{selectedItem.price}</p>
+              <p style={{ color: '#ff69b4', fontSize: '36px', fontWeight: '900', margin: 0, textShadow: '0 0 20px rgba(255,20,147,0.5)' }}>₹{selectedItem.price}</p>
             </div>
 
             {/* Payment Tabs */}
             <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px', marginBottom: '20px' }}>
               <button onClick={() => { setPaymentTab('upi'); setShowQR(false); }}
                 style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '14px', transition: 'all 0.2s',
-                  background: paymentTab === 'upi' ? 'linear-gradient(135deg, #e94560, #f5576c)' : 'transparent',
+                  background: paymentTab === 'upi' ? 'linear-gradient(135deg, #ff1493, #ff69b4)' : 'transparent',
                   color: paymentTab === 'upi' ? 'white' : '#a0aec0',
-                  boxShadow: paymentTab === 'upi' ? '0 4px 14px rgba(233,69,96,0.4)' : 'none' }}>
+                  boxShadow: paymentTab === 'upi' ? '0 4px 14px rgba(255,20,147,0.4)' : 'none' }}>
                 📱 UPI / QR
               </button>
               <button onClick={() => { setPaymentTab('card'); setShowQR(false); }}
                 style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '14px', transition: 'all 0.2s',
-                  background: paymentTab === 'card' ? 'linear-gradient(135deg, #e94560, #f5576c)' : 'transparent',
+                  background: paymentTab === 'card' ? 'linear-gradient(135deg, #ff1493, #ff69b4)' : 'transparent',
                   color: paymentTab === 'card' ? 'white' : '#a0aec0',
-                  boxShadow: paymentTab === 'card' ? '0 4px 14px rgba(233,69,96,0.4)' : 'none' }}>
+                  boxShadow: paymentTab === 'card' ? '0 4px 14px rgba(255,20,147,0.4)' : 'none' }}>
                 💳 Card
               </button>
             </div>
@@ -303,7 +304,7 @@ function AllListings() {
                 ) : (
                   <div style={{ textAlign: 'center' }}>
                     <p style={{ color: '#a0aec0', fontSize: '13px', marginBottom: '12px' }}>Scan QR Code to pay:</p>
-                    <div style={{ width: '180px', height: '180px', margin: '0 auto 12px', background: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', boxShadow: '0 0 25px rgba(233,69,96,0.3)' }}>
+                    <div style={{ width: '180px', height: '180px', margin: '0 auto 12px', background: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', boxShadow: '0 0 25px rgba(255,20,147,0.3)' }}>
                       <svg viewBox="0 0 100 100" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
                         <rect width="100" height="100" fill="white"/>
                         <rect x="5" y="5" width="35" height="35" fill="none" stroke="black" strokeWidth="3"/>
@@ -335,10 +336,10 @@ function AllListings() {
                         <rect x="70" y="85" width="5" height="5" fill="black"/>
                         <rect x="90" y="85" width="5" height="5" fill="black"/>
                         <rect x="45" y="45" width="5" height="5" fill="black"/>
-                        <text x="50" y="52" textAnchor="middle" fontSize="4" fill="#e94560" fontWeight="bold">BabbaFly</text>
+                        <text x="50" y="52" textAnchor="middle" fontSize="4" fill="#ff1493" fontWeight="bold">BabbaFly</text>
                       </svg>
                     </div>
-                    <p style={{ color: '#ff6b9d', fontSize: '18px', fontWeight: '800', margin: '0 0 4px' }}>₹{selectedItem.price}</p>
+                    <p style={{ color: '#ff69b4', fontSize: '18px', fontWeight: '800', margin: '0 0 4px' }}>₹{selectedItem.price}</p>
                     {upiTimer !== null && (
                       <p style={{ color: upiTimer < 30 ? '#fc8181' : '#68d391', fontSize: '13px', margin: '4px 0 12px' }}>
                         ⏱ {Math.floor(upiTimer/60)}:{String(upiTimer%60).padStart(2,'0')} remaining
@@ -357,7 +358,7 @@ function AllListings() {
             {paymentTab === 'card' && (
               <div>
                 {/* Card Preview */}
-                <div style={{ background: 'linear-gradient(135deg, #e94560, #f5576c, #4a3f99)', borderRadius: '16px', padding: '20px', marginBottom: '18px', position: 'relative', overflow: 'hidden', boxShadow: '0 8px 25px rgba(233,69,96,0.3)' }}>
+                <div style={{ background: 'linear-gradient(135deg, #ff1493, #ff69b4, #1565c0)', borderRadius: '16px', padding: '20px', marginBottom: '18px', position: 'relative', overflow: 'hidden', boxShadow: '0 8px 25px rgba(255,20,147,0.3)' }}>
                   <div style={{ position: 'absolute', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', top: '-50px', right: '-30px' }} />
                   <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', margin: '0 0 15px', letterSpacing: '2px' }}>DEBIT / CREDIT CARD</p>
                   <p style={{ color: 'white', fontSize: '18px', fontWeight: '700', letterSpacing: '3px', margin: '0 0 15px', fontFamily: 'monospace' }}>
@@ -400,7 +401,7 @@ function AllListings() {
             )}
 
             <button onClick={handleBook}
-              style={{ width: '100%', padding: '15px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '800', marginTop: '18px', boxShadow: '0 6px 20px rgba(233,69,96,0.45)', letterSpacing: '0.5px' }}>
+              style={{ width: '100%', padding: '15px', background: 'linear-gradient(135deg, #ff1493, #ff69b4)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '800', marginTop: '18px', boxShadow: '0 6px 20px rgba(255,20,147,0.45)', letterSpacing: '0.5px' }}>
               ✅ Pay ₹{selectedItem.price}
             </button>
             <button onClick={() => { setSelectedItem(null); setBookingStatus(''); setPaymentInfo({ cardName: '', cardNumber: '', expiry: '', cvv: '' }); setUpiId(''); setShowQR(false); }}
