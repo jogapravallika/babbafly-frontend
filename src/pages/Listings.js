@@ -5,12 +5,7 @@ function Listings() {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
   const animRef = useRef(null);
-  const stateRef = useRef({
-    bubbleLetters: [],
-    particles: [],
-    phase: 'inflate',
-    phaseT: 0,
-  });
+  const stateRef = useRef({ letters: [], flames: [], t: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -18,275 +13,127 @@ function Listings() {
     const ctx = canvas.getContext('2d');
 
     const WORD = 'BabbaFly';
-    const COLORS = [
-      '#ff1493', '#c2185b', '#1565c0', '#4fc3f7',
-      '#0d47a1', '#ff69b4', '#1976d2', '#e91e8c'
-    ];
+    const COLS = ['#ff1493','#c2185b','#1565c0','#4fc3f7','#0d47a1','#ff69b4','#1976d2','#e91e8c'];
 
     function resize() {
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
     }
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', () => { resize(); init(); });
 
-    function makeShards(bl) {
-      bl.shards = [];
-      const count = 14 + Math.floor(Math.random() * 8);
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2 + Math.random() * 0.3;
-        const speed = 2.5 + Math.random() * 4;
-        bl.shards.push({
-          x: bl.targetX, y: bl.targetY,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          r: 4 + Math.random() * 10,
-          life: 1,
-          color: bl.color,
-          type: Math.random() > 0.5 ? 'bubble' : 'dot',
-          wobble: Math.random() * Math.PI * 2,
-          wobbleSpeed: (Math.random() - 0.5) * 0.15,
-        });
-      }
-    }
-
-    function initLetters() {
+    function init() {
       const s = stateRef.current;
-      s.bubbleLetters = [];
-      s.particles = [];
-      s.phase = 'inflate';
-      s.phaseT = 0;
-
-      ctx.font = '900 72px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const totalWidth = ctx.measureText(WORD).width;
-      let curX = canvas.width / 2 - totalWidth / 2;
-      const cy = canvas.height / 2;
-
+      s.letters = []; s.flames = []; s.t = 0;
+      ctx.font = 'bold 68px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const totalW = ctx.measureText(WORD).width;
+      let dx = canvas.width / 2 - totalW / 2;
+      const targetY = canvas.height / 2 - 20;
       WORD.split('').forEach((ch, i) => {
         const w = ctx.measureText(ch).width;
-        const tx = curX + w / 2;
-        s.bubbleLetters.push({
-          ch, idx: i,
-          targetX: tx,
-          targetY: cy,
-          y: -80 - i * 18,
-          scale: 0,
-          opacity: 0,
-          bubbleR: 0,
-          targetBubbleR: 36 + i * 1.5,
-          color: COLORS[i % COLORS.length],
-          shattered: false,
-          shards: [],
-          rebuildProgress: 0,
+        s.letters.push({
+          ch, i, x: dx + w / 2,
+          y: -60 - i * 20,
+          targetY,
+          col: COLS[i % COLS.length],
+          settled: false, settleT: 0, glow: 0
         });
-        curX += w + 2;
+        dx += w;
       });
     }
 
-    function spawnFloatParticle() {
+    function spawnFlame(x, y, col, count, big) {
       const s = stateRef.current;
-      if (Math.random() < 0.25) {
-        s.particles.push({
-          x: Math.random() * canvas.width,
-          y: canvas.height + 10,
-          vx: (Math.random() - 0.5) * 0.8,
-          vy: -(0.5 + Math.random() * 1.2),
-          r: 2 + Math.random() * 5,
+      for (let i = 0; i < count; i++) {
+        s.flames.push({
+          x: x + (Math.random() - 0.5) * (big ? 18 : 10),
+          y: y + 5,
+          vx: (Math.random() - 0.5) * (big ? 1.2 : 0.7),
+          vy: -(big ? 0.6 + Math.random() * 1.2 : 0.3 + Math.random() * 0.7),
           life: 1,
-          color: Math.random() > 0.5 ? '#ff1493' : '#4fc3f7',
+          r: big ? 4 + Math.random() * 6 : 2 + Math.random() * 4,
+          col
         });
       }
-    }
-
-    function drawBubbleLetter(bl) {
-      const x = bl.targetX;
-      const y = bl.targetY;
-
-      if (bl.shattered && bl.rebuildProgress < 1) {
-        bl.shards.forEach(s => {
-          if (s.life <= 0) return;
-          ctx.save();
-          ctx.globalAlpha = s.life * 0.85;
-          if (s.type === 'bubble') {
-            ctx.strokeStyle = s.color;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.fillStyle = s.color + '33';
-            ctx.fill();
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            ctx.beginPath();
-            ctx.arc(s.x - s.r * 0.3, s.y - s.r * 0.3, s.r * 0.22, 0, Math.PI * 2);
-            ctx.fill();
-          } else {
-            ctx.fillStyle = s.color;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r * 0.5, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          ctx.restore();
-        });
-        return;
-      }
-
-      if (bl.shattered && bl.rebuildProgress >= 1) {
-        ctx.save();
-        ctx.globalAlpha = bl.opacity;
-        ctx.font = '900 72px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = bl.color;
-        ctx.shadowBlur = 28;
-        ctx.fillStyle = bl.color;
-        ctx.fillText(bl.ch, x, y);
-        ctx.shadowBlur = 0;
-        ctx.restore();
-        return;
-      }
-
-      const r = bl.bubbleR * bl.scale;
-      if (r <= 0) return;
-
-      ctx.save();
-      ctx.globalAlpha = bl.opacity;
-
-      // outer glow
-      const glow = ctx.createRadialGradient(x, y, r * 0.6, x, y, r * 1.35);
-      glow.addColorStop(0, bl.color + '00');
-      glow.addColorStop(0.7, bl.color + '22');
-      glow.addColorStop(1, bl.color + '44');
-      ctx.fillStyle = glow;
-      ctx.beginPath(); ctx.arc(x, y, r * 1.35, 0, Math.PI * 2); ctx.fill();
-
-      // bubble body
-      const grad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.05, x, y, r);
-      grad.addColorStop(0, 'rgba(255,255,255,0.18)');
-      grad.addColorStop(0.4, bl.color + '55');
-      grad.addColorStop(0.85, bl.color + 'aa');
-      grad.addColorStop(1, bl.color + 'dd');
-      ctx.strokeStyle = bl.color;
-      ctx.lineWidth = 2.5;
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-
-      // shine
-      ctx.fillStyle = 'rgba(255,255,255,0.55)';
-      ctx.beginPath(); ctx.arc(x - r * 0.32, y - r * 0.32, r * 0.18, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.2)';
-      ctx.beginPath(); ctx.arc(x + r * 0.25, y + r * 0.28, r * 0.09, 0, Math.PI * 2); ctx.fill();
-
-      // letter inside
-      ctx.font = `900 ${Math.max(10, r * 1.1)}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#fff';
-      ctx.shadowColor = bl.color;
-      ctx.shadowBlur = 12;
-      ctx.fillText(bl.ch, x, y);
-      ctx.shadowBlur = 0;
-
-      ctx.restore();
     }
 
     function update() {
       const s = stateRef.current;
-      s.phaseT++;
-      spawnFloatParticle();
+      s.t++;
 
-      s.particles = s.particles.filter(p => p.life > 0);
-      s.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.007; });
-
-      if (s.phase === 'inflate') {
-        s.bubbleLetters.forEach((bl, i) => {
-          if (s.phaseT > i * 8) {
-            bl.y += (bl.targetY - bl.y) * 0.12;
-            bl.scale = Math.min(bl.scale + 0.045, 1);
-            bl.bubbleR += (bl.targetBubbleR - bl.bubbleR) * 0.1;
-            bl.opacity = Math.min(bl.opacity + 0.06, 1);
+      s.letters.forEach((l, i) => {
+        if (s.t < i * 10) return;
+        if (!l.settled) {
+          l.y += (l.targetY - l.y) * 0.13;
+          if (s.t % 3 === 0) spawnFlame(l.x, l.y, l.col, 1, false);
+          if (Math.abs(l.y - l.targetY) < 1) {
+            l.y = l.targetY; l.settled = true;
+            spawnFlame(l.x, l.y, l.col, 8, true);
           }
-        });
-        const last = s.bubbleLetters[s.bubbleLetters.length - 1];
-        if (last.scale > 0.95 && s.phaseT > (WORD.length - 1) * 8 + 30) {
-          s.phase = 'hold'; s.phaseT = 0;
+        } else {
+          l.settleT++;
+          l.glow = Math.min(l.glow + 0.05, 1);
+          if (l.settleT < 40 && s.t % 6 === 0) spawnFlame(l.x, l.y + 14, l.col, 1, false);
         }
-      }
+      });
 
-      if (s.phase === 'hold') {
-        s.bubbleLetters.forEach((bl, i) => {
-          bl.bubbleR = bl.targetBubbleR + Math.sin(Date.now() * 0.003 + i) * 2;
-        });
-        if (s.phaseT > 80) { s.phase = 'shatter'; s.phaseT = 0; }
-      }
+      s.flames = s.flames.filter(f => f.life > 0);
+      s.flames.forEach(f => {
+        f.x += f.vx; f.y += f.vy;
+        f.vy -= 0.02; f.vx *= 0.97;
+        f.life -= 0.055; f.r *= 0.97;
+      });
 
-      if (s.phase === 'shatter') {
-        s.bubbleLetters.forEach((bl, i) => {
-          if (s.phaseT > i * 5 && !bl.shattered) {
-            bl.shattered = true;
-            makeShards(bl);
-          }
-        });
-        s.bubbleLetters.forEach(bl => {
-          if (!bl.shattered) return;
-          bl.shards.forEach(sh => {
-            sh.x += sh.vx; sh.y += sh.vy;
-            sh.vy += 0.12; sh.vx *= 0.97;
-            sh.life -= 0.022;
-            sh.wobble += sh.wobbleSpeed;
-            sh.r += Math.sin(sh.wobble) * 0.3;
-          });
-        });
-        const allDone = s.bubbleLetters.every(bl => bl.shattered && bl.shards.every(sh => sh.life <= 0));
-        if (allDone || s.phaseT > 130) { s.phase = 'rebuild'; s.phaseT = 0; }
-      }
-
-      if (s.phase === 'rebuild') {
-        s.bubbleLetters.forEach((bl, i) => {
-          if (s.phaseT > i * 10) {
-            bl.rebuildProgress = Math.min(bl.rebuildProgress + 0.05, 1);
-            bl.opacity = Math.min(bl.opacity + 0.04, 1);
-          }
-        });
-        const last = s.bubbleLetters[s.bubbleLetters.length - 1];
-        if (last.rebuildProgress >= 1 && s.phaseT > (WORD.length - 1) * 10 + 50) {
-          s.phase = 'hold2'; s.phaseT = 0;
-        }
-      }
-
-      if (s.phase === 'hold2') {
-        if (s.phaseT > 100) initLetters();
-      }
+      const allSettled = s.letters.every(l => l.settled);
+      const lastT = s.letters[s.letters.length - 1]?.settleT || 0;
+      if (allSettled && lastT > 110) init();
     }
 
     function draw() {
       const s = stateRef.current;
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // float bubbles
-      s.particles.forEach(p => {
-        ctx.save();
-        ctx.globalAlpha = p.life * 0.4;
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.stroke();
-        ctx.fillStyle = p.color + '22'; ctx.fill();
+      // glow blobs
+      [{x:.2,y:.3,c:'rgba(255,20,147,0.07)'},{x:.8,y:.65,c:'rgba(21,101,192,0.09)'}].forEach(b => {
+        const g = ctx.createRadialGradient(canvas.width*b.x, canvas.height*b.y, 0, canvas.width*b.x, canvas.height*b.y, 160);
+        g.addColorStop(0, b.c); g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      });
+
+      // flames
+      s.flames.forEach(f => {
+        const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+        g.addColorStop(0, 'rgba(255,255,255,0.75)');
+        g.addColorStop(0.3, f.col + 'cc');
+        g.addColorStop(0.75, f.col + '44');
+        g.addColorStop(1, f.col + '00');
+        ctx.save(); ctx.globalAlpha = f.life * 0.7;
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
       });
 
-      s.bubbleLetters.forEach(drawBubbleLetter);
+      // letters
+      ctx.font = 'bold 68px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      s.letters.forEach(l => {
+        if (l.y < -100) return;
+        ctx.save();
+        ctx.shadowColor = l.col;
+        ctx.shadowBlur = l.settled ? 26 * l.glow : 8;
+        ctx.fillStyle = l.settled ? l.col : `hsl(${15 + l.i * 9},100%,62%)`;
+        ctx.globalAlpha = l.settled ? 1 : 0.88;
+        ctx.fillText(l.ch, l.x, l.y);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      });
     }
 
     function loop() {
-      update();
-      draw();
+      update(); draw();
       animRef.current = requestAnimationFrame(loop);
     }
 
-    initLetters();
+    init();
     loop();
 
     return () => {
@@ -312,24 +159,23 @@ function Listings() {
       <div style={{ position: 'absolute', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(79,195,247,0.1)', top: '30%', right: '10%', filter: 'blur(70px)' }} />
       <div style={{ position: 'absolute', width: '250px', height: '250px', borderRadius: '50%', background: 'rgba(255,20,147,0.07)', bottom: '20%', left: '5%', filter: 'blur(60px)' }} />
 
-      {/* BabbaFly bubble shatter canvas */}
+      {/* Flame canvas */}
       <canvas
         ref={canvasRef}
         style={{
           position: 'absolute',
           top: 0, left: 0,
-          width: '100%',
-          height: '100%',
+          width: '100%', height: '100%',
           pointerEvents: 'none',
-          zIndex: 2,
+          zIndex: 2
         }}
       />
 
       <div style={{ textAlign: 'center', zIndex: 3, padding: '20px', maxWidth: '650px' }}>
         <span style={{ fontSize: '70px', display: 'block', marginBottom: '10px', filter: 'drop-shadow(0 0 30px rgba(255,20,147,0.6))' }}>🚀</span>
 
-        {/* Spacer where BabbaFly canvas renders */}
-        <div style={{ height: '110px' }} />
+        {/* Spacer for BabbaFly canvas */}
+        <div style={{ height: '100px' }} />
 
         <p style={{ color: '#f8b4d9', fontSize: '20px', marginBottom: '8px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '300' }}>
           Your Travel, Your Way
@@ -347,14 +193,9 @@ function Listings() {
             style={{
               padding: '16px 50px',
               background: 'linear-gradient(135deg, #ff1493, #ff69b4)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '50px',
-              cursor: 'pointer',
-              fontSize: '18px',
-              fontWeight: '700',
-              boxShadow: '0 8px 30px rgba(255,20,147,0.5)',
-              transition: 'all 0.3s'
+              color: 'white', border: 'none', borderRadius: '50px',
+              cursor: 'pointer', fontSize: '18px', fontWeight: '700',
+              boxShadow: '0 8px 30px rgba(255,20,147,0.5)', transition: 'all 0.3s'
             }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 35px rgba(255,20,147,0.7)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(255,20,147,0.5)'; }}
@@ -365,16 +206,10 @@ function Listings() {
           <button
             onClick={() => navigate('/my-bookings')}
             style={{
-              padding: '16px 50px',
-              background: 'transparent',
-              color: '#f8b4d9',
-              border: '2px solid rgba(255,105,180,0.5)',
-              borderRadius: '50px',
-              cursor: 'pointer',
-              fontSize: '18px',
-              fontWeight: '700',
-              backdropFilter: 'blur(10px)',
-              transition: 'all 0.3s'
+              padding: '16px 50px', background: 'transparent',
+              color: '#f8b4d9', border: '2px solid rgba(255,105,180,0.5)',
+              borderRadius: '50px', cursor: 'pointer', fontSize: '18px',
+              fontWeight: '700', backdropFilter: 'blur(10px)', transition: 'all 0.3s'
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,20,147,0.15)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = 'rgba(255,105,180,0.9)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,105,180,0.5)'; }}
