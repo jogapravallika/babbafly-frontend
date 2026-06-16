@@ -45,10 +45,14 @@ function AllListings() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [bookingStatus, setBookingStatus] = useState('');
+  const [paymentTab, setPaymentTab] = useState('upi'); // 'upi' or 'card'
+  const [upiId, setUpiId] = useState('');
   const [paymentInfo, setPaymentInfo] = useState({ cardName: '', cardNumber: '', expiry: '', cvv: '' });
   const [fullMapItem, setFullMapItem] = useState(null);
   const [mapCoords, setMapCoords] = useState(null);
   const [mapLoading, setMapLoading] = useState(false);
+  const [upiTimer, setUpiTimer] = useState(null);
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => { fetchListings(); }, []);
 
@@ -76,21 +80,39 @@ function AllListings() {
   const handleBook = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) { setBookingStatus('❌ Please login first!'); return; }
-    if (!paymentInfo.cardName || !paymentInfo.cardNumber || !paymentInfo.expiry || !paymentInfo.cvv) {
-      setBookingStatus('❌ Please fill all payment details!'); return;
+
+    if (paymentTab === 'upi' && !upiId) {
+      setBookingStatus('❌ UPI ID enter చేయండి!'); return;
     }
+    if (paymentTab === 'card') {
+      if (!paymentInfo.cardName || !paymentInfo.cardNumber || !paymentInfo.expiry || !paymentInfo.cvv) {
+        setBookingStatus('❌ Please fill all card details!'); return;
+      }
+    }
+
     try {
       const res = await axios.post(`${API}/api/orders`, {
         userId: user._id, listingId: selectedItem._id, amount: selectedItem.price
       });
       if (res.data.success) {
-        setBookingStatus('✅ Booking Successful! Payment Done!');
+        setBookingStatus('✅ Payment Successful! Booking Confirmed!');
         setTimeout(() => {
           setSelectedItem(null); setBookingStatus('');
           setPaymentInfo({ cardName: '', cardNumber: '', expiry: '', cvv: '' });
+          setUpiId(''); setShowQR(false);
         }, 2500);
       }
     } catch (err) { setBookingStatus('❌ Booking failed! Try again.'); }
+  };
+
+  const handleShowQR = () => {
+    setShowQR(true);
+    let t = 180;
+    const interval = setInterval(() => {
+      t--;
+      setUpiTimer(t);
+      if (t <= 0) { clearInterval(interval); setShowQR(false); setUpiTimer(null); }
+    }, 1000);
   };
 
   const config = (cat) => categoryConfig[cat] || { color: '#888', bg: '#f9f9f9', icon: '📦', label: cat };
@@ -98,7 +120,7 @@ function AllListings() {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
 
-      {/* Header bar */}
+      {/* Header */}
       <div style={{ padding: '30px 20px 20px', textAlign: 'center' }}>
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '700px', margin: '0 auto 15px' }}>
           <input
@@ -108,45 +130,33 @@ function AllListings() {
             onKeyPress={(e) => e.key === 'Enter' && fetchListings()}
             style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', width: '260px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}
           />
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}
-          >
+          <select value={sort} onChange={(e) => setSort(e.target.value)}
+            style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
             <option value="">Sort By</option>
             <option value="latest">⏰ Latest</option>
             <option value="price_low">💰 Low to High</option>
             <option value="price_high">💎 High to Low</option>
             <option value="popular">⭐ Popular</option>
           </select>
-          <button
-            onClick={fetchListings}
-            style={{ padding: '14px 28px', background: '#e94560', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px' }}
-          >
+          <button onClick={fetchListings}
+            style={{ padding: '14px 28px', background: '#e94560', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px' }}>
             Search
           </button>
         </div>
-
-        <button
-          onClick={() => navigate('/my-bookings')}
+        <button onClick={() => navigate('/my-bookings')}
           style={{ padding: '11px 30px', background: 'rgba(255,255,255,0.08)', color: 'white', border: '2px solid rgba(255,255,255,0.25)', borderRadius: '50px', cursor: 'pointer', fontSize: '15px', fontWeight: '700', backdropFilter: 'blur(10px)' }}
           onMouseEnter={e => e.currentTarget.style.background = 'rgba(233,69,96,0.25)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-        >
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>
           📋 My Bookings
         </button>
       </div>
 
-      {/* Listings grid */}
+      {/* Listings Grid */}
       <div style={{ padding: '10px 20px 40px', maxWidth: '1300px', margin: '0 auto' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px' }}>
-            <p style={{ fontSize: '20px', color: '#a0aec0' }}>⏳ Loading listings...</p>
-          </div>
+          <div style={{ textAlign: 'center', padding: '60px' }}><p style={{ fontSize: '20px', color: '#a0aec0' }}>⏳ Loading listings...</p></div>
         ) : listings.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px' }}>
-            <p style={{ fontSize: '20px', color: '#a0aec0' }}>😕 No listings found</p>
-          </div>
+          <div style={{ textAlign: 'center', padding: '60px' }}><p style={{ fontSize: '20px', color: '#a0aec0' }}>😕 No listings found</p></div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px' }}>
             {listings.map((item) => {
@@ -155,8 +165,7 @@ function AllListings() {
                 <div key={item._id}
                   style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'all 0.3s' }}
                   onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                >
+                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
                   <div style={{ background: `linear-gradient(135deg, ${cfg.color}22, ${cfg.color}44)`, padding: '25px', display: 'flex', alignItems: 'center', gap: '15px', borderBottom: `3px solid ${cfg.color}` }}>
                     <span style={{ fontSize: '50px' }}>{cfg.icon}</span>
                     <div>
@@ -176,7 +185,7 @@ function AllListings() {
                         <p style={{ color: cfg.color, fontWeight: '800', fontSize: '24px', margin: 0 }}>₹{item.price}</p>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
-                        <button onClick={() => { setSelectedItem(item); setBookingStatus(''); }}
+                        <button onClick={() => { setSelectedItem(item); setBookingStatus(''); setPaymentTab('upi'); setShowQR(false); setUpiId(''); }}
                           style={{ padding: '10px 18px', background: cfg.color, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}>
                           🎟️ Book Now
                         </button>
@@ -196,7 +205,7 @@ function AllListings() {
         )}
       </div>
 
-      {/* Full Map Modal */}
+      {/* Map Modal */}
       {fullMapItem && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', zIndex: 2000, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', background: '#1a1a2e' }}>
@@ -230,53 +239,172 @@ function AllListings() {
         </div>
       )}
 
-      {/* Booking Modal */}
+      {/* Payment Modal - Dark UPI Style */}
       {selectedItem && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', borderRadius: '20px', padding: '35px', maxWidth: '480px', width: '90%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
-            <h2 style={{ color: '#1a1a2e', textAlign: 'center', marginBottom: '20px' }}>🎟️ Complete Your Booking</h2>
-            <div style={{ background: config(selectedItem.category).bg, borderRadius: '12px', padding: '20px', marginBottom: '20px', border: `2px solid ${config(selectedItem.category).color}22` }}>
-              <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                <span style={{ fontSize: '40px' }}>{config(selectedItem.category).icon}</span>
-                <div>
-                  <h3 style={{ margin: 0, color: '#1a1a2e' }}>{selectedItem.title}</h3>
-                  <p style={{ margin: '4px 0 0', color: '#666', fontSize: '14px' }}>📍 {selectedItem.location || 'N/A'}</p>
-                </div>
-              </div>
-              <div style={{ textAlign: 'center', marginTop: '15px', padding: '10px', background: 'white', borderRadius: '8px' }}>
-                <p style={{ margin: 0, color: '#999', fontSize: '12px' }}>Total Amount</p>
-                <p style={{ margin: 0, color: config(selectedItem.category).color, fontSize: '28px', fontWeight: '800' }}>₹{selectedItem.price}</p>
-              </div>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'linear-gradient(135deg, #1a1a2e, #16213e)', borderRadius: '24px', padding: '30px', maxWidth: '460px', width: '92%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 25px 60px rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
+
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <span style={{ fontSize: '40px' }}>{config(selectedItem.category).icon}</span>
+              <h2 style={{ color: 'white', margin: '8px 0 2px', fontSize: '20px', fontWeight: '800' }}>{selectedItem.title}</h2>
+              <p style={{ color: '#a0aec0', margin: 0, fontSize: '13px' }}>📍 {selectedItem.location || 'N/A'}</p>
             </div>
-            <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ color: '#1a1a2e', marginBottom: '15px', fontSize: '16px' }}>💳 Payment Details</h3>
-              <input placeholder="Card Holder Name" value={paymentInfo.cardName}
-                onChange={(e) => setPaymentInfo({ ...paymentInfo, cardName: e.target.value })}
-                style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '2px solid #e2e8f0', fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box', outline: 'none' }} />
-              <input placeholder="Card Number (16 digits)" value={paymentInfo.cardNumber}
-                onChange={(e) => setPaymentInfo({ ...paymentInfo, cardNumber: e.target.value })}
-                maxLength={16}
-                style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '2px solid #e2e8f0', fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box', outline: 'none' }} />
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <input placeholder="MM/YY" value={paymentInfo.expiry}
-                  onChange={(e) => setPaymentInfo({ ...paymentInfo, expiry: e.target.value })}
-                  maxLength={5} style={{ width: '50%', padding: '12px 15px', borderRadius: '10px', border: '2px solid #e2e8f0', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }} />
-                <input placeholder="CVV" value={paymentInfo.cvv}
-                  onChange={(e) => setPaymentInfo({ ...paymentInfo, cvv: e.target.value })}
-                  maxLength={3} type="password" style={{ width: '50%', padding: '12px 15px', borderRadius: '10px', border: '2px solid #e2e8f0', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }} />
-              </div>
+
+            {/* Amount Box */}
+            <div style={{ background: 'rgba(233,69,96,0.15)', border: '1px solid rgba(233,69,96,0.4)', borderRadius: '14px', padding: '15px', textAlign: 'center', marginBottom: '22px' }}>
+              <p style={{ color: '#a0aec0', margin: '0 0 4px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Amount</p>
+              <p style={{ color: '#e94560', fontSize: '36px', fontWeight: '900', margin: 0 }}>₹{selectedItem.price}</p>
             </div>
-            {bookingStatus && (
-              <div style={{ textAlign: 'center', padding: '12px', borderRadius: '10px', marginBottom: '15px', background: bookingStatus.includes('✅') ? '#f0fff4' : '#fff5f5', border: `1px solid ${bookingStatus.includes('✅') ? '#68d391' : '#fc8181'}` }}>
-                <p style={{ margin: 0, color: bookingStatus.includes('✅') ? '#276749' : '#c53030', fontWeight: '600' }}>{bookingStatus}</p>
+
+            {/* Payment Tabs */}
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px', marginBottom: '20px' }}>
+              <button onClick={() => { setPaymentTab('upi'); setShowQR(false); }}
+                style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '14px', transition: 'all 0.2s',
+                  background: paymentTab === 'upi' ? 'linear-gradient(135deg, #e94560, #f5576c)' : 'transparent',
+                  color: paymentTab === 'upi' ? 'white' : '#a0aec0' }}>
+                📱 UPI / QR
+              </button>
+              <button onClick={() => { setPaymentTab('card'); setShowQR(false); }}
+                style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '14px', transition: 'all 0.2s',
+                  background: paymentTab === 'card' ? 'linear-gradient(135deg, #e94560, #f5576c)' : 'transparent',
+                  color: paymentTab === 'card' ? 'white' : '#a0aec0' }}>
+                💳 Card
+              </button>
+            </div>
+
+            {/* UPI Tab */}
+            {paymentTab === 'upi' && (
+              <div>
+                {!showQR ? (
+                  <div>
+                    <p style={{ color: '#cbd5e0', fontSize: '14px', marginBottom: '12px', fontWeight: '600' }}>UPI ID Enter చేయండి:</p>
+                    <input
+                      placeholder="yourname@upi / yourname@paytm"
+                      value={upiId}
+                      onChange={e => setUpiId(e.target.value)}
+                      style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }}
+                    />
+                    <p style={{ color: '#718096', fontSize: '12px', textAlign: 'center', marginBottom: '14px' }}>— లేదా —</p>
+                    <button onClick={handleShowQR}
+                      style={{ width: '100%', padding: '13px', background: 'rgba(255,255,255,0.07)', color: 'white', border: '2px solid rgba(255,255,255,0.15)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', marginBottom: '8px' }}>
+                      📷 QR Code తో Pay చేయండి
+                    </button>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
+                      {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map(app => (
+                        <div key={app} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '8px 12px', textAlign: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }}>
+                          <p style={{ color: '#cbd5e0', fontSize: '11px', margin: 0, fontWeight: '600' }}>{app}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ color: '#a0aec0', fontSize: '13px', marginBottom: '12px' }}>QR Code scan చేయండి:</p>
+                    {/* QR Code placeholder */}
+                    <div style={{ width: '180px', height: '180px', margin: '0 auto 12px', background: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
+                      <svg viewBox="0 0 100 100" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
+                        {/* QR pattern */}
+                        <rect width="100" height="100" fill="white"/>
+                        <rect x="5" y="5" width="35" height="35" fill="none" stroke="black" strokeWidth="3"/>
+                        <rect x="12" y="12" width="21" height="21" fill="black"/>
+                        <rect x="60" y="5" width="35" height="35" fill="none" stroke="black" strokeWidth="3"/>
+                        <rect x="67" y="12" width="21" height="21" fill="black"/>
+                        <rect x="5" y="60" width="35" height="35" fill="none" stroke="black" strokeWidth="3"/>
+                        <rect x="12" y="67" width="21" height="21" fill="black"/>
+                        <rect x="45" y="5" width="5" height="5" fill="black"/>
+                        <rect x="45" y="15" width="5" height="5" fill="black"/>
+                        <rect x="45" y="25" width="5" height="5" fill="black"/>
+                        <rect x="55" y="45" width="5" height="5" fill="black"/>
+                        <rect x="60" y="45" width="5" height="5" fill="black"/>
+                        <rect x="70" y="45" width="5" height="5" fill="black"/>
+                        <rect x="80" y="45" width="5" height="5" fill="black"/>
+                        <rect x="90" y="45" width="5" height="5" fill="black"/>
+                        <rect x="45" y="55" width="5" height="5" fill="black"/>
+                        <rect x="55" y="55" width="5" height="5" fill="black"/>
+                        <rect x="65" y="55" width="5" height="5" fill="black"/>
+                        <rect x="75" y="55" width="5" height="5" fill="black"/>
+                        <rect x="45" y="65" width="5" height="5" fill="black"/>
+                        <rect x="60" y="65" width="5" height="5" fill="black"/>
+                        <rect x="70" y="65" width="5" height="5" fill="black"/>
+                        <rect x="85" y="65" width="5" height="5" fill="black"/>
+                        <rect x="50" y="75" width="5" height="5" fill="black"/>
+                        <rect x="65" y="75" width="5" height="5" fill="black"/>
+                        <rect x="80" y="75" width="5" height="5" fill="black"/>
+                        <rect x="55" y="85" width="5" height="5" fill="black"/>
+                        <rect x="70" y="85" width="5" height="5" fill="black"/>
+                        <rect x="90" y="85" width="5" height="5" fill="black"/>
+                        <rect x="45" y="45" width="5" height="5" fill="black"/>
+                        <text x="50" y="52" textAnchor="middle" fontSize="4" fill="#e94560" fontWeight="bold">BabbaFly</text>
+                      </svg>
+                    </div>
+                    <p style={{ color: '#e94560', fontSize: '18px', fontWeight: '800', margin: '0 0 4px' }}>₹{selectedItem.price}</p>
+                    {upiTimer !== null && (
+                      <p style={{ color: upiTimer < 30 ? '#fc8181' : '#68d391', fontSize: '13px', margin: '4px 0 12px' }}>
+                        ⏱ {Math.floor(upiTimer/60)}:{String(upiTimer%60).padStart(2,'0')} లో expire అవుతుంది
+                      </p>
+                    )}
+                    <button onClick={() => { setShowQR(false); setUpiTimer(null); }}
+                      style={{ background: 'transparent', color: '#a0aec0', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>
+                      ← Back
+                    </button>
+                  </div>
+                )}
               </div>
             )}
+
+            {/* Card Tab */}
+            {paymentTab === 'card' && (
+              <div>
+                {/* Card Preview */}
+                <div style={{ background: 'linear-gradient(135deg, #e94560, #f5576c, #45b7d1)', borderRadius: '16px', padding: '20px', marginBottom: '18px', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', top: '-50px', right: '-30px' }} />
+                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', margin: '0 0 15px', letterSpacing: '2px' }}>DEBIT / CREDIT CARD</p>
+                  <p style={{ color: 'white', fontSize: '18px', fontWeight: '700', letterSpacing: '3px', margin: '0 0 15px', fontFamily: 'monospace' }}>
+                    {paymentInfo.cardNumber ? paymentInfo.cardNumber.replace(/(.{4})/g, '$1 ').trim() : '**** **** **** ****'}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div>
+                      <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '9px', margin: '0', letterSpacing: '1px' }}>CARD HOLDER</p>
+                      <p style={{ color: 'white', fontSize: '13px', fontWeight: '700', margin: '2px 0 0' }}>{paymentInfo.cardName || 'YOUR NAME'}</p>
+                    </div>
+                    <div>
+                      <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '9px', margin: '0', letterSpacing: '1px' }}>EXPIRES</p>
+                      <p style={{ color: 'white', fontSize: '13px', fontWeight: '700', margin: '2px 0 0' }}>{paymentInfo.expiry || 'MM/YY'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <input placeholder="Card Holder Name" value={paymentInfo.cardName}
+                  onChange={(e) => setPaymentInfo({ ...paymentInfo, cardName: e.target.value })}
+                  style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', marginBottom: '10px', boxSizing: 'border-box', outline: 'none' }} />
+                <input placeholder="Card Number (16 digits)" value={paymentInfo.cardNumber}
+                  onChange={(e) => setPaymentInfo({ ...paymentInfo, cardNumber: e.target.value })}
+                  maxLength={16}
+                  style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', marginBottom: '10px', boxSizing: 'border-box', outline: 'none', fontFamily: 'monospace' }} />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input placeholder="MM/YY" value={paymentInfo.expiry}
+                    onChange={(e) => setPaymentInfo({ ...paymentInfo, expiry: e.target.value })}
+                    maxLength={5} style={{ width: '50%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }} />
+                  <input placeholder="CVV" value={paymentInfo.cvv}
+                    onChange={(e) => setPaymentInfo({ ...paymentInfo, cvv: e.target.value })}
+                    maxLength={3} type="password" style={{ width: '50%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }} />
+                </div>
+              </div>
+            )}
+
+            {bookingStatus && (
+              <div style={{ textAlign: 'center', padding: '12px', borderRadius: '10px', margin: '15px 0', background: bookingStatus.includes('✅') ? 'rgba(104,211,145,0.15)' : 'rgba(252,129,129,0.15)', border: `1px solid ${bookingStatus.includes('✅') ? '#68d391' : '#fc8181'}` }}>
+                <p style={{ margin: 0, color: bookingStatus.includes('✅') ? '#68d391' : '#fc8181', fontWeight: '600' }}>{bookingStatus}</p>
+              </div>
+            )}
+
             <button onClick={handleBook}
-              style={{ width: '100%', padding: '15px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', marginBottom: '10px' }}>
-              ✅ Confirm & Pay ₹{selectedItem.price}
+              style={{ width: '100%', padding: '15px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '800', marginTop: '18px', boxShadow: '0 6px 20px rgba(233,69,96,0.4)', letterSpacing: '0.5px' }}>
+              ✅ Pay ₹{selectedItem.price}
             </button>
-            <button onClick={() => { setSelectedItem(null); setBookingStatus(''); setPaymentInfo({ cardName: '', cardNumber: '', expiry: '', cvv: '' }); }}
-              style={{ width: '100%', padding: '13px', background: 'white', color: '#666', border: '2px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', fontSize: '15px', fontWeight: '600' }}>
+            <button onClick={() => { setSelectedItem(null); setBookingStatus(''); setPaymentInfo({ cardName: '', cardNumber: '', expiry: '', cvv: '' }); setUpiId(''); setShowQR(false); }}
+              style={{ width: '100%', padding: '13px', background: 'transparent', color: '#718096', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', cursor: 'pointer', fontSize: '15px', fontWeight: '600', marginTop: '10px' }}>
               Cancel
             </button>
           </div>
