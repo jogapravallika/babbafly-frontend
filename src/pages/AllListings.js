@@ -42,7 +42,7 @@ function AllListings() {
   const navigate = useNavigate();
   const [listings, setListings] = useState([]);
   const [location, setLocation] = useState('');
-  const [sort, setSort] = useState('');
+  const [sort, setSort] = useState('all');
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [bookingStatus, setBookingStatus] = useState('');
@@ -62,7 +62,7 @@ function AllListings() {
     try {
       let url = `${API}/api/listings?`;
       if (location) url += `location=${location}&`;
-      if (sort) url += `sort=${sort}&`;
+      if (sort && sort !== 'all') url += `sort=${sort}&`;
       const res = await axios.get(url);
       setListings(res.data.listings);
     } catch (err) { console.error(err); }
@@ -118,6 +118,32 @@ function AllListings() {
 
   const config = (cat) => categoryConfig[cat] || { color: '#4fc3f7', bg: 'rgba(79,195,247,0.08)', icon: '📦', label: cat };
 
+  // Client-side sort, so the dropdown always behaves correctly (Latest/Low/High/
+  // Popular/All) no matter what the backend does with the `sort` query param.
+  const getListingTime = (item) => {
+    if (item.createdAt) return new Date(item.createdAt).getTime();
+    if (item._id && typeof item._id === 'string' && item._id.length >= 8) {
+      // MongoDB ObjectIds encode their creation timestamp in the first 8 hex chars
+      return parseInt(item._id.substring(0, 8), 16) * 1000;
+    }
+    return 0;
+  };
+
+  const getSortedListings = () => {
+    const sorted = [...listings];
+    if (sort === 'latest') {
+      sorted.sort((a, b) => getListingTime(b) - getListingTime(a));
+    } else if (sort === 'price_low') {
+      sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sort === 'price_high') {
+      sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (sort === 'popular') {
+      sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    }
+    // 'all' -> no sorting, show everything as fetched
+    return sorted;
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0e27 0%, #0d1b4b 45%, #061b3a 75%, #0a0e27 100%)' }}>
 
@@ -133,7 +159,7 @@ function AllListings() {
           />
           <select value={sort} onChange={(e) => setSort(e.target.value)}
             style={{ padding: '14px 20px', borderRadius: '12px', border: '2px solid rgba(255,105,180,0.25)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '15px', outline: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-            <option value="" style={{ color: '#0a0e27' }}>Sort By</option>
+            <option value="all" style={{ color: '#0a0e27' }}>📋 All</option>
             <option value="latest" style={{ color: '#0a0e27' }}>⏰ Latest</option>
             <option value="price_low" style={{ color: '#0a0e27' }}>💰 Low to High</option>
             <option value="price_high" style={{ color: '#0a0e27' }}>💎 High to Low</option>
@@ -156,11 +182,11 @@ function AllListings() {
       <div style={{ padding: '10px 20px 40px', maxWidth: '1300px', margin: '0 auto' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px' }}><p style={{ fontSize: '20px', color: '#a0aec0' }}>⏳ Loading listings...</p></div>
-        ) : listings.length === 0 ? (
+        ) : getSortedListings().length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px' }}><p style={{ fontSize: '20px', color: '#a0aec0' }}>😕 No listings found</p></div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px' }}>
-            {listings.map((item) => {
+            {getSortedListings().map((item) => {
               const cfg = config(item.category);
               return (
                 <div key={item._id}
