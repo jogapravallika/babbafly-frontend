@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,7 +7,17 @@ const API = 'https://babbafly-backend-ae30.onrender.com';
 function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Warm up the backend the moment this page loads. Render's free tier
+  // spins down idle services, so the FIRST request after inactivity can
+  // take 20-50s. Firing a lightweight ping now (while the user is still
+  // typing) means the server is usually already awake by the time they
+  // click Login, instead of making them wait through the cold start.
+  useEffect(() => {
+    axios.get(`${API}/`).catch(() => {}); // fire-and-forget, ignore errors/timeouts
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -15,14 +25,29 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // prevent double-submits firing duplicate requests
+
+    if (!form.email || !form.password) {
+      setMessage('❌ Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    setMessage('');
     try {
-      const res = await axios.post(`${API}/api/users/login`, form);
+      const res = await axios.post(`${API}/api/users/login`, form, { timeout: 60000 });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       setMessage('✅ Login Successful!');
       setTimeout(() => navigate('/listings'), 1500);
     } catch (err) {
-      setMessage('❌ ' + (err.response?.data?.message || 'Something went wrong'));
+      if (err.code === 'ECONNABORTED') {
+        setMessage('❌ Server is taking too long to respond. Please try again.');
+      } else {
+        setMessage('❌ ' + (err.response?.data?.message || 'Something went wrong'));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,24 +114,25 @@ function Login() {
           { name: 'password', placeholder: '🔒 Password', type: 'password' },
         ].map((field) => (
           <input key={field.name} name={field.name} type={field.type} placeholder={field.placeholder}
-            onChange={handleChange}
+            onChange={handleChange} disabled={loading}
             style={{
               width: '100%', padding: '14px 16px', margin: '8px 0', borderRadius: '12px',
               border: '1px solid rgba(255,105,180,0.25)', background: 'rgba(255,255,255,0.06)',
-              color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
+              color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+              opacity: loading ? 0.6 : 1
             }}
           />
         ))}
 
-        <button onClick={handleSubmit}
+        <button onClick={handleSubmit} disabled={loading}
           style={{
             width: '100%', padding: '14px',
-            background: 'linear-gradient(135deg, #ff1493, #ff69b4)',
-            color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer',
+            background: loading ? 'rgba(255,20,147,0.4)' : 'linear-gradient(135deg, #ff1493, #ff69b4)',
+            color: 'white', border: 'none', borderRadius: '12px', cursor: loading ? 'not-allowed' : 'pointer',
             marginTop: '15px', fontSize: '16px', fontWeight: '700',
-            boxShadow: '0 6px 25px rgba(255,20,147,0.5)', letterSpacing: '0.5px'
+            boxShadow: loading ? 'none' : '0 6px 25px rgba(255,20,147,0.5)', letterSpacing: '0.5px'
           }}>
-          🔐 Login
+          {loading ? '⏳ Logging in...' : '🔐 Login'}
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '20px', color: '#a0b4cc', fontSize: '14px' }}>
