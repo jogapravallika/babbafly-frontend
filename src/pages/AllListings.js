@@ -82,7 +82,7 @@ function AllListings() {
     if (!user) { setBookingStatus('❌ Please login first!'); return; }
 
     if (paymentTab === 'upi' && !upiId) {
-      setBookingStatus('❌ UPI ID enter చేయండి!'); return;
+      setBookingStatus('❌ Please enter your UPI ID!'); return;
     }
     if (paymentTab === 'card') {
       if (!paymentInfo.cardName || !paymentInfo.cardNumber || !paymentInfo.expiry || !paymentInfo.cvv) {
@@ -278,17 +278,17 @@ function AllListings() {
               <div>
                 {!showQR ? (
                   <div>
-                    <p style={{ color: '#cbd5e0', fontSize: '14px', marginBottom: '12px', fontWeight: '600' }}>UPI ID Enter చేయండి:</p>
+                    <p style={{ color: '#cbd5e0', fontSize: '14px', marginBottom: '12px', fontWeight: '600' }}>Enter your UPI ID:</p>
                     <input
                       placeholder="yourname@upi / yourname@paytm"
                       value={upiId}
                       onChange={e => setUpiId(e.target.value)}
                       style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }}
                     />
-                    <p style={{ color: '#718096', fontSize: '12px', textAlign: 'center', marginBottom: '14px' }}>— లేదా —</p>
+                    <p style={{ color: '#718096', fontSize: '12px', textAlign: 'center', marginBottom: '14px' }}>— OR —</p>
                     <button onClick={handleShowQR}
                       style={{ width: '100%', padding: '13px', background: 'rgba(255,255,255,0.07)', color: 'white', border: '2px solid rgba(255,255,255,0.15)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', marginBottom: '8px' }}>
-                      📷 QR Code తో Pay చేయండి
+                      📷 Pay with QR Code
                     </button>
                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
                       {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map(app => (
@@ -300,7 +300,7 @@ function AllListings() {
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center' }}>
-                    <p style={{ color: '#a0aec0', fontSize: '13px', marginBottom: '12px' }}>QR Code scan చేయండి:</p>
+                    <p style={{ color: '#a0aec0', fontSize: '13px', marginBottom: '12px' }}>Scan QR Code to pay:</p>
                     {/* QR Code placeholder */}
                     <div style={{ width: '180px', height: '180px', margin: '0 auto 12px', background: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
                       <svg viewBox="0 0 100 100" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
@@ -341,7 +341,7 @@ function AllListings() {
                     <p style={{ color: '#e94560', fontSize: '18px', fontWeight: '800', margin: '0 0 4px' }}>₹{selectedItem.price}</p>
                     {upiTimer !== null && (
                       <p style={{ color: upiTimer < 30 ? '#fc8181' : '#68d391', fontSize: '13px', margin: '4px 0 12px' }}>
-                        ⏱ {Math.floor(upiTimer/60)}:{String(upiTimer%60).padStart(2,'0')} లో expire అవుతుంది
+                        ⏱ {Math.floor(upiTimer/60)}:{String(upiTimer%60).padStart(2,'0')} remaining
                       </p>
                     )}
                     <button onClick={() => { setShowQR(false); setUpiTimer(null); }}
