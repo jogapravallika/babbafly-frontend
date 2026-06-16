@@ -118,7 +118,7 @@ function AllListings() {
   const config = (cat) => categoryConfig[cat] || { color: '#888', bg: '#f9f9f9', icon: '📦', label: cat };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0a0e27 0%, #0d1b4b 40%, #1a0533 70%, #0a0e27 100%)' }}>
 
       {/* Header */}
       <div style={{ padding: '30px 20px 20px', textAlign: 'center' }}>
@@ -128,25 +128,25 @@ function AllListings() {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && fetchListings()}
-            style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', width: '260px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}
+            style={{ padding: '14px 20px', borderRadius: '12px', border: '2px solid rgba(255,105,180,0.25)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '15px', width: '260px', outline: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
           />
           <select value={sort} onChange={(e) => setSort(e.target.value)}
-            style={{ padding: '14px 20px', borderRadius: '12px', border: 'none', fontSize: '15px', outline: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
-            <option value="">Sort By</option>
-            <option value="latest">⏰ Latest</option>
-            <option value="price_low">💰 Low to High</option>
-            <option value="price_high">💎 High to Low</option>
-            <option value="popular">⭐ Popular</option>
+            style={{ padding: '14px 20px', borderRadius: '12px', border: '2px solid rgba(255,105,180,0.25)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '15px', outline: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
+            <option value="" style={{ color: '#1a1a2e' }}>Sort By</option>
+            <option value="latest" style={{ color: '#1a1a2e' }}>⏰ Latest</option>
+            <option value="price_low" style={{ color: '#1a1a2e' }}>💰 Low to High</option>
+            <option value="price_high" style={{ color: '#1a1a2e' }}>💎 High to Low</option>
+            <option value="popular" style={{ color: '#1a1a2e' }}>⭐ Popular</option>
           </select>
           <button onClick={fetchListings}
-            style={{ padding: '14px 28px', background: '#e94560', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px' }}>
+            style={{ padding: '14px 28px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '15px', boxShadow: '0 4px 20px rgba(233,69,96,0.4)' }}>
             Search
           </button>
         </div>
         <button onClick={() => navigate('/my-bookings')}
-          style={{ padding: '11px 30px', background: 'rgba(255,255,255,0.08)', color: 'white', border: '2px solid rgba(255,255,255,0.25)', borderRadius: '50px', cursor: 'pointer', fontSize: '15px', fontWeight: '700', backdropFilter: 'blur(10px)' }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(233,69,96,0.25)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>
+          style={{ padding: '11px 30px', background: 'rgba(255,255,255,0.06)', color: 'white', border: '2px solid rgba(255,105,180,0.35)', borderRadius: '50px', cursor: 'pointer', fontSize: '15px', fontWeight: '700', backdropFilter: 'blur(10px)', transition: 'all 0.2s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(233,69,96,0.25)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(233,69,96,0.4)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.boxShadow = 'none'; }}>
           📋 My Bookings
         </button>
       </div>
@@ -163,35 +163,35 @@ function AllListings() {
               const cfg = config(item.category);
               return (
                 <div key={item._id}
-                  style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', transition: 'all 0.3s' }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                  <div style={{ background: `linear-gradient(135deg, ${cfg.color}22, ${cfg.color}44)`, padding: '25px', display: 'flex', alignItems: 'center', gap: '15px', borderBottom: `3px solid ${cfg.color}` }}>
+                  style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', transition: 'all 0.3s', backdropFilter: 'blur(10px)' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(233,69,96,0.3)'; e.currentTarget.style.border = '1px solid rgba(233,69,96,0.4)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.4)'; e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; }}>
+                  <div style={{ background: `linear-gradient(135deg, ${cfg.color}33, ${cfg.color}11)`, padding: '25px', display: 'flex', alignItems: 'center', gap: '15px', borderBottom: `3px solid ${cfg.color}` }}>
                     <span style={{ fontSize: '50px' }}>{cfg.icon}</span>
                     <div>
-                      <h3 style={{ color: '#1a1a2e', fontSize: '18px', fontWeight: '700', margin: 0 }}>{item.title}</h3>
+                      <h3 style={{ color: 'white', fontSize: '18px', fontWeight: '700', margin: 0 }}>{item.title}</h3>
                       <span style={{ background: cfg.color, color: 'white', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>{cfg.label}</span>
                     </div>
                   </div>
                   <div style={{ padding: '20px' }}>
-                    <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px', lineHeight: '1.5' }}>{item.description}</p>
+                    <p style={{ color: '#a0aec0', fontSize: '14px', marginBottom: '12px', lineHeight: '1.5' }}>{item.description}</p>
                     <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
-                      <span style={{ color: '#4a5568', fontSize: '14px' }}>📍 {item.location || 'N/A'}</span>
-                      <span style={{ color: '#4a5568', fontSize: '14px' }}>⭐ {item.rating || 0}/5</span>
+                      <span style={{ color: '#cbd5e0', fontSize: '14px' }}>📍 {item.location || 'N/A'}</span>
+                      <span style={{ color: '#cbd5e0', fontSize: '14px' }}>⭐ {item.rating || 0}/5</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
-                        <span style={{ color: '#999', fontSize: '12px' }}>Starting from</span>
-                        <p style={{ color: cfg.color, fontWeight: '800', fontSize: '24px', margin: 0 }}>₹{item.price}</p>
+                        <span style={{ color: '#718096', fontSize: '12px' }}>Starting from</span>
+                        <p style={{ color: cfg.color, fontWeight: '800', fontSize: '24px', margin: 0, textShadow: `0 0 12px ${cfg.color}55` }}>₹{item.price}</p>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
                         <button onClick={() => { setSelectedItem(item); setBookingStatus(''); setPaymentTab('upi'); setShowQR(false); setUpiId(''); }}
-                          style={{ padding: '10px 18px', background: cfg.color, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}>
+                          style={{ padding: '10px 18px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', boxShadow: '0 4px 14px rgba(233,69,96,0.35)' }}>
                           🎟️ Book Now
                         </button>
                         {item.location && (
                           <button onClick={() => handleViewMap(item)}
-                            style={{ padding: '8px 18px', background: 'white', color: cfg.color, border: `2px solid ${cfg.color}`, borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
+                            style={{ padding: '8px 18px', background: 'rgba(255,255,255,0.06)', color: 'white', border: `2px solid ${cfg.color}88`, borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
                             🗺️ View Map
                           </button>
                         )}
@@ -207,14 +207,14 @@ function AllListings() {
 
       {/* Map Modal */}
       {fullMapItem && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', zIndex: 2000, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', background: '#1a1a2e' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(5,7,20,0.92)', zIndex: 2000, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 25px', background: 'linear-gradient(135deg, #0a0e27, #1a0533)', borderBottom: '1px solid rgba(255,105,180,0.2)' }}>
             <div>
               <h3 style={{ color: 'white', margin: 0 }}>{config(fullMapItem.category).icon} {fullMapItem.title}</h3>
               <p style={{ color: '#a0aec0', margin: 0, fontSize: '14px' }}>📍 {fullMapItem.location}</p>
             </div>
             <button onClick={() => { setFullMapItem(null); setMapCoords(null); }}
-              style={{ background: '#e94560', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontSize: '16px', fontWeight: '700' }}>
+              style={{ background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 4px 14px rgba(233,69,96,0.4)' }}>
               ✕ Close
             </button>
           </div>
@@ -241,8 +241,8 @@ function AllListings() {
 
       {/* Payment Modal - Dark UPI Style */}
       {selectedItem && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'linear-gradient(135deg, #1a1a2e, #16213e)', borderRadius: '24px', padding: '30px', maxWidth: '460px', width: '92%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 25px 60px rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(5,7,20,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'linear-gradient(135deg, #0a0e27, #0d1b4b, #1a0533)', borderRadius: '24px', padding: '30px', maxWidth: '460px', width: '92%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 25px 60px rgba(0,0,0,0.6)', border: '1px solid rgba(255,105,180,0.15)' }}>
 
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
@@ -252,9 +252,9 @@ function AllListings() {
             </div>
 
             {/* Amount Box */}
-            <div style={{ background: 'rgba(233,69,96,0.15)', border: '1px solid rgba(233,69,96,0.4)', borderRadius: '14px', padding: '15px', textAlign: 'center', marginBottom: '22px' }}>
+            <div style={{ background: 'rgba(233,69,96,0.15)', border: '1px solid rgba(233,69,96,0.4)', borderRadius: '14px', padding: '15px', textAlign: 'center', marginBottom: '22px', boxShadow: '0 0 20px rgba(233,69,96,0.15)' }}>
               <p style={{ color: '#a0aec0', margin: '0 0 4px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Amount</p>
-              <p style={{ color: '#e94560', fontSize: '36px', fontWeight: '900', margin: 0 }}>₹{selectedItem.price}</p>
+              <p style={{ color: '#ff6b9d', fontSize: '36px', fontWeight: '900', margin: 0, textShadow: '0 0 20px rgba(233,69,96,0.5)' }}>₹{selectedItem.price}</p>
             </div>
 
             {/* Payment Tabs */}
@@ -262,13 +262,15 @@ function AllListings() {
               <button onClick={() => { setPaymentTab('upi'); setShowQR(false); }}
                 style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '14px', transition: 'all 0.2s',
                   background: paymentTab === 'upi' ? 'linear-gradient(135deg, #e94560, #f5576c)' : 'transparent',
-                  color: paymentTab === 'upi' ? 'white' : '#a0aec0' }}>
+                  color: paymentTab === 'upi' ? 'white' : '#a0aec0',
+                  boxShadow: paymentTab === 'upi' ? '0 4px 14px rgba(233,69,96,0.4)' : 'none' }}>
                 📱 UPI / QR
               </button>
               <button onClick={() => { setPaymentTab('card'); setShowQR(false); }}
                 style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '700', fontSize: '14px', transition: 'all 0.2s',
                   background: paymentTab === 'card' ? 'linear-gradient(135deg, #e94560, #f5576c)' : 'transparent',
-                  color: paymentTab === 'card' ? 'white' : '#a0aec0' }}>
+                  color: paymentTab === 'card' ? 'white' : '#a0aec0',
+                  boxShadow: paymentTab === 'card' ? '0 4px 14px rgba(233,69,96,0.4)' : 'none' }}>
                 💳 Card
               </button>
             </div>
@@ -283,16 +285,16 @@ function AllListings() {
                       placeholder="yourname@upi / yourname@paytm"
                       value={upiId}
                       onChange={e => setUpiId(e.target.value)}
-                      style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }}
+                      style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '2px solid rgba(255,105,180,0.2)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }}
                     />
                     <p style={{ color: '#718096', fontSize: '12px', textAlign: 'center', marginBottom: '14px' }}>— OR —</p>
                     <button onClick={handleShowQR}
-                      style={{ width: '100%', padding: '13px', background: 'rgba(255,255,255,0.07)', color: 'white', border: '2px solid rgba(255,255,255,0.15)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', marginBottom: '8px' }}>
+                      style={{ width: '100%', padding: '13px', background: 'rgba(255,255,255,0.07)', color: 'white', border: '2px solid rgba(255,105,180,0.25)', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', marginBottom: '8px' }}>
                       📷 Pay with QR Code
                     </button>
                     <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
                       {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map(app => (
-                        <div key={app} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '8px 12px', textAlign: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div key={app} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '8px 12px', textAlign: 'center', cursor: 'pointer', border: '1px solid rgba(255,105,180,0.15)' }}>
                           <p style={{ color: '#cbd5e0', fontSize: '11px', margin: 0, fontWeight: '600' }}>{app}</p>
                         </div>
                       ))}
@@ -301,10 +303,8 @@ function AllListings() {
                 ) : (
                   <div style={{ textAlign: 'center' }}>
                     <p style={{ color: '#a0aec0', fontSize: '13px', marginBottom: '12px' }}>Scan QR Code to pay:</p>
-                    {/* QR Code placeholder */}
-                    <div style={{ width: '180px', height: '180px', margin: '0 auto 12px', background: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px' }}>
+                    <div style={{ width: '180px', height: '180px', margin: '0 auto 12px', background: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', boxShadow: '0 0 25px rgba(233,69,96,0.3)' }}>
                       <svg viewBox="0 0 100 100" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
-                        {/* QR pattern */}
                         <rect width="100" height="100" fill="white"/>
                         <rect x="5" y="5" width="35" height="35" fill="none" stroke="black" strokeWidth="3"/>
                         <rect x="12" y="12" width="21" height="21" fill="black"/>
@@ -338,7 +338,7 @@ function AllListings() {
                         <text x="50" y="52" textAnchor="middle" fontSize="4" fill="#e94560" fontWeight="bold">BabbaFly</text>
                       </svg>
                     </div>
-                    <p style={{ color: '#e94560', fontSize: '18px', fontWeight: '800', margin: '0 0 4px' }}>₹{selectedItem.price}</p>
+                    <p style={{ color: '#ff6b9d', fontSize: '18px', fontWeight: '800', margin: '0 0 4px' }}>₹{selectedItem.price}</p>
                     {upiTimer !== null && (
                       <p style={{ color: upiTimer < 30 ? '#fc8181' : '#68d391', fontSize: '13px', margin: '4px 0 12px' }}>
                         ⏱ {Math.floor(upiTimer/60)}:{String(upiTimer%60).padStart(2,'0')} remaining
@@ -357,7 +357,7 @@ function AllListings() {
             {paymentTab === 'card' && (
               <div>
                 {/* Card Preview */}
-                <div style={{ background: 'linear-gradient(135deg, #e94560, #f5576c, #45b7d1)', borderRadius: '16px', padding: '20px', marginBottom: '18px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ background: 'linear-gradient(135deg, #e94560, #f5576c, #4a3f99)', borderRadius: '16px', padding: '20px', marginBottom: '18px', position: 'relative', overflow: 'hidden', boxShadow: '0 8px 25px rgba(233,69,96,0.3)' }}>
                   <div style={{ position: 'absolute', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', top: '-50px', right: '-30px' }} />
                   <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', margin: '0 0 15px', letterSpacing: '2px' }}>DEBIT / CREDIT CARD</p>
                   <p style={{ color: 'white', fontSize: '18px', fontWeight: '700', letterSpacing: '3px', margin: '0 0 15px', fontFamily: 'monospace' }}>
@@ -377,18 +377,18 @@ function AllListings() {
 
                 <input placeholder="Card Holder Name" value={paymentInfo.cardName}
                   onChange={(e) => setPaymentInfo({ ...paymentInfo, cardName: e.target.value })}
-                  style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', marginBottom: '10px', boxSizing: 'border-box', outline: 'none' }} />
+                  style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,105,180,0.2)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', marginBottom: '10px', boxSizing: 'border-box', outline: 'none' }} />
                 <input placeholder="Card Number (16 digits)" value={paymentInfo.cardNumber}
                   onChange={(e) => setPaymentInfo({ ...paymentInfo, cardNumber: e.target.value })}
                   maxLength={16}
-                  style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', marginBottom: '10px', boxSizing: 'border-box', outline: 'none', fontFamily: 'monospace' }} />
+                  style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,105,180,0.2)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', marginBottom: '10px', boxSizing: 'border-box', outline: 'none', fontFamily: 'monospace' }} />
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input placeholder="MM/YY" value={paymentInfo.expiry}
                     onChange={(e) => setPaymentInfo({ ...paymentInfo, expiry: e.target.value })}
-                    maxLength={5} style={{ width: '50%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }} />
+                    maxLength={5} style={{ width: '50%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,105,180,0.2)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }} />
                   <input placeholder="CVV" value={paymentInfo.cvv}
                     onChange={(e) => setPaymentInfo({ ...paymentInfo, cvv: e.target.value })}
-                    maxLength={3} type="password" style={{ width: '50%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }} />
+                    maxLength={3} type="password" style={{ width: '50%', padding: '12px 15px', borderRadius: '10px', border: '2px solid rgba(255,105,180,0.2)', background: 'rgba(255,255,255,0.07)', color: 'white', fontSize: '14px', boxSizing: 'border-box', outline: 'none' }} />
                 </div>
               </div>
             )}
@@ -400,7 +400,7 @@ function AllListings() {
             )}
 
             <button onClick={handleBook}
-              style={{ width: '100%', padding: '15px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '800', marginTop: '18px', boxShadow: '0 6px 20px rgba(233,69,96,0.4)', letterSpacing: '0.5px' }}>
+              style={{ width: '100%', padding: '15px', background: 'linear-gradient(135deg, #e94560, #f5576c)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '800', marginTop: '18px', boxShadow: '0 6px 20px rgba(233,69,96,0.45)', letterSpacing: '0.5px' }}>
               ✅ Pay ₹{selectedItem.price}
             </button>
             <button onClick={() => { setSelectedItem(null); setBookingStatus(''); setPaymentInfo({ cardName: '', cardNumber: '', expiry: '', cvv: '' }); setUpiId(''); setShowQR(false); }}
