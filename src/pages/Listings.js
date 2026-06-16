@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 function Listings() {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
+  const spacerRef = useRef(null); // NEW: ref to the spacer div below the rocket
   const animRef = useRef(null);
   const stateRef = useRef({ letters: [], flames: [], t: 0 });
 
@@ -29,7 +30,16 @@ function Listings() {
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       const totalW = ctx.measureText(WORD).width;
       let dx = canvas.width / 2 - totalW / 2;
-      const targetY = canvas.height / 2 - 20;
+
+      // FIX: compute targetY from the spacer's actual position on the page,
+      // instead of the vertical center of the whole canvas/page.
+      let targetY = canvas.height / 2 - 20; // fallback if spacer isn't ready yet
+      if (spacerRef.current) {
+        const canvasRect = canvas.getBoundingClientRect();
+        const spacerRect = spacerRef.current.getBoundingClientRect();
+        targetY = spacerRect.top - canvasRect.top + spacerRect.height / 2;
+      }
+
       WORD.split('').forEach((ch, i) => {
         const w = ctx.measureText(ch).width;
         s.letters.push({
@@ -174,8 +184,8 @@ function Listings() {
       <div style={{ textAlign: 'center', zIndex: 3, padding: '20px', maxWidth: '650px' }}>
         <span style={{ fontSize: '70px', display: 'block', marginBottom: '10px', filter: 'drop-shadow(0 0 30px rgba(255,20,147,0.6))' }}>🚀</span>
 
-        {/* Spacer for BabbaFly canvas */}
-        <div style={{ height: '100px' }} />
+        {/* Spacer for BabbaFly canvas — the animation now targets the center of THIS div */}
+        <div ref={spacerRef} style={{ height: '100px' }} />
 
         <p style={{ color: '#f8b4d9', fontSize: '20px', marginBottom: '8px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '300' }}>
           Your Travel, Your Way
